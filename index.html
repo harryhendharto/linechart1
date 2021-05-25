@@ -112,10 +112,12 @@ UCID: 12244891
         .tickFormat(d3.timeFormat("%Y"))
 
     let yAxisSettings = d3.axisLeft(y) 
-        .ticks(10) 
-        .tickSize(-width) //size of tick lines
-        .tickFormat(d3.format(".0%")) //what format do you want https://github.com/d3/d3-format 
-        .tickPadding(10) //distance from tick labels to tick marks
+        .ticks(4) 
+        // .tickSize(-width) //size of tick lines
+        .tickFormat(d3.format(".0")) //what format do you want https://github.com/d3/d3-format 
+        .tickPadding(5) //distance from tick labels to tick marks
+
+    // BACKGROUND
 
     let bg = svg.append("rect")
         .attr("x", margin.left)
@@ -124,18 +126,44 @@ UCID: 12244891
         .attr("height", height)
         .style("fill", "#FFF9F5")
 
+    // BASELINE
 
-    //adding to the axes to our chart
+    let baseline = svg.append("line")
+        .attr("x1", margin.left)
+        .attr("x2", width + margin.left)
+        .attr("y1", y(0))
+        .attr("y2", y(0))
+        .style("stroke", "black")
+        .style("stroke-width", "0.2px")
+
+    // AXIS TICKS
+
     let xAxisTicks = svg.append("g")
         .attr("class", "x axis") //give each axis a class
         .call(xAxisSettings)
-        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .attr("transform", `translate(0,${height})`)
+
+    let yAxisTicks = svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxisSettings)
+        .attr("transform", `translate(${margin.left},0)`)
+        .style("stroke-width", "0.2px")
+
+    
+
+    let line = d3.line() //define a line function
+        .defined(d => !isNaN(d.recognition))
+        .x(function (d) { return x(d.month) }) //accessing date 
+        .y(function (d) { return y(d.bitcoin) }) //accesssing value 
+
+    let line_path = svg.append("path") //Add a grouping element. It's useful to organize svg elements. https://developer.mozilla.org/en-US/docs/Web/SVG/Element/g
+        .attr("class", "line") // Give circles a class name.
+        .attr("d", line(data))
+        .style("fill", "none")
+        .style("stroke", "darkblue")
+        .style("stroke-width", 1.8)
 
 
-
-
-
-        // let margin = { top: 30, right: 10, bottom: 10, left: 30 };
 
         // //d3 scales for the x and y axis
         // //domain takes the data we have and maps them into SVG space
