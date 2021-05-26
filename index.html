@@ -10,6 +10,7 @@ UCID: 12244891
 
 <head>
     <meta charset="utf-8">
+    <link href='https://fonts.googleapis.com/css?family=Lato:300,900' rel='stylesheet' type='text/css'>
     <!-- set styles on the top -->
     <style>
         .chart-container {
@@ -17,7 +18,7 @@ UCID: 12244891
             /* border: 2px solid red; */
             margin: 0 auto;
             /* auto centers the div */
-            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            font-family: 'Lato';
         }
 
         svg {
@@ -44,6 +45,51 @@ UCID: 12244891
           stroke: steelblue;
           stroke-width: 1.5px;
         }
+
+        :root {
+          --accent-color: #E8336D;
+        }
+
+        path.line {
+            fill: none;
+            stroke: lightgrey;
+            stroke-width: 1px;
+          }
+
+        .annotation path {
+          stroke: var(--accent-color);
+          fill: none;
+        }
+
+        .annotation path.connector-arrow, 
+        .title text, .annotation text,
+        .annotation.callout.circle .annotation-subject path{
+          fill: var(--accent-color);
+        }
+        .annotation-note-bg {
+          fill: rgba(255, 255, 255, 0);
+        }
+
+        .annotation-note-title {
+          font-weight: bold;
+        }
+
+        .annotation.xythreshold {
+          cursor: move;
+        }
+
+        .hidden {
+          display: none;
+        }
+
+        text.hover {
+          font-size: .7em;
+        }
+
+        text.title {
+          font-size: 1.1em;
+        }
+
     </style>
 </head>
 
@@ -61,6 +107,7 @@ UCID: 12244891
 </body>
 
 <script src="https://d3js.org/d3.v6.min.js"></script>
+
 <!-- we're using d3 version 6 (the latest version) for all out work -->
 
 <script>
@@ -89,7 +136,7 @@ UCID: 12244891
 
     // DATA LOADING
 
-    d3.csv("gtrend.csv").then(function (data) {
+    d3.csv("gtrend4.csv").then(function (data) {
 
         data.forEach(function (d) {
             d.bitcoin = +d.bitcoin
@@ -97,6 +144,7 @@ UCID: 12244891
             d.cryptocurrency = +d.cryptocurrency
             d.x5g = +d.x5g
             d.x3d_printer = +d.x3d_printer
+            d.event = +d.event
         })
 
     console.log(data)
@@ -121,7 +169,6 @@ UCID: 12244891
       };
     });
 
-    
     // AXIS
 
     let x = d3.scaleTime()
@@ -131,52 +178,6 @@ UCID: 12244891
     let y = d3.scaleLinear()
       .domain([0,100])
       .range([height,0])
-
-    let xAxisSettings = d3.axisBottom(x)
-        .ticks(10)
-        .tickSize(10)
-        .tickPadding(5)
-        .tickFormat(d3.timeFormat("%Y"))
-
-    let yAxisSettings = d3.axisLeft(y) 
-        .ticks(2) 
-        // .tickSize(-width) //size of tick lines
-        .tickFormat(d3.format(".0f")) //what format do you want https://github.com/d3/d3-format 
-        .tickPadding(5) //distance from tick labels to tick marks
-
-    // BACKGROUND
-
-    let bg = svg.append("rect")
-        .attr("x", margin.left)
-        .attr("y", 0)
-        .attr("width", width)
-        .attr("height", height)
-        .style("fill", "#f7f8fa")
-
-    // BASELINE
-
-    let baseline = svg.append("line")
-        .attr("x1", margin.left)
-        .attr("x2", width + margin.left)
-        .attr("y1", y(0))
-        .attr("y2", y(0))
-        .style("stroke", "black")
-        .style("stroke-width", "0.2px")
-
-    // AXIS TICKS
-
-    let xAxisTicks = svg.append("g")
-        .attr("class", "x axis") //give each axis a class
-        .call(xAxisSettings)
-        .attr("transform", `translate(0,${height})`)
-
-    let yAxisTicks = svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxisSettings)
-        .attr("transform", `translate(${margin.left},0)`)
-        .style("stroke-width", "0.2px")
-
-
 
     // ADD TIMEFRAME
     let timeframes = [
@@ -190,7 +191,7 @@ UCID: 12244891
       {
         RangeStart: formatTime('2017-05-01'),
         RangeEnd: formatTime('2018-04-01'),
-        Label: "Peak of Inflated",
+        Label: "Inflated",
         Label2: "Expectations",
         Color: "#fde2e4"
       },
@@ -238,6 +239,49 @@ UCID: 12244891
         .attr("y", -5)
         .text(d => d.Label2);
 
+    let xAxisSettings = d3.axisBottom(x)
+        .ticks(10)
+        .tickSize(10)
+        .tickPadding(5)
+        .tickFormat(d3.timeFormat("%Y"))
+
+    let yAxisSettings = d3.axisLeft(y) 
+        .ticks(2) 
+        .tickSize(-width) //size of tick lines
+        .tickFormat(d3.format(".0f")) //what format do you want https://github.com/d3/d3-format 
+        .tickPadding(5) //distance from tick labels to tick marks
+
+    // BACKGROUND
+
+    let bg = svg.append("rect")
+        .attr("x", margin.left)
+        .attr("y", 0)
+        .attr("width", width)
+        .attr("height", height)
+        .style("fill", "none")
+
+    // BASELINE
+
+    let baseline = svg.append("line")
+        .attr("x1", margin.left)
+        .attr("x2", width + margin.left)
+        .attr("y1", y(0))
+        .attr("y2", y(0))
+        .style("stroke", "black")
+        .style("stroke-width", "0.2px")
+
+    // AXIS TICKS
+
+    let xAxisTicks = svg.append("g")
+        .attr("class", "x axis") //give each axis a class
+        .call(xAxisSettings)
+        .attr("transform", `translate(0,${height})`)
+
+    let yAxisTicks = svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxisSettings)
+        .attr("transform", `translate(${margin.left},0)`)
+        .style("stroke-width", "0.2px")
 
 
 
@@ -256,7 +300,7 @@ UCID: 12244891
         .attr("class", "line") // Give circles a class name.
         .attr("d", line(data))
         .style("fill", "none")
-        .style("stroke", "darkblue")
+        .style("stroke", "black")
         .style("stroke-width", 1.8)
 
     // INTERACTIVE
@@ -304,16 +348,49 @@ UCID: 12244891
       .on('mousemove', mousemove)
       .on('mouseout', mouseout)
 
+    svg
+      .append("g")
+      .selectAll("dot")
+      .data(data)
+      .enter()
+      .append("circle")
+        .attr("class", "myCircle")
+        .attr("cx", function(d) { return x(d.month) } )
+        .attr("cy", function(d) { return y(d.bitcoin) } )
+        .attr("r", 2)
+        .attr("stroke", "grey")
+        .attr("stroke-width", 1)
+        .attr("fill", "white")
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseleave", mouseout)
+
+    // EVENT ANNOTATIONS
+
+    let tip = svg
+      .append("div")
+      .style("opacity", 0)
+      .attr("class", "tooltip")
+      .style("background-color", "white")
+      .style("border", "solid")
+      .style("border-width", "2px")
+      .style("border-radius", "5px")
+      .style("padding", "5px")
+
+    
+    // MOUSEOVER
+
     function mouseover() {
       focus.style('opacity', 1)
       focusText.style('opacity', 1)
       hoverLine.style('opacity', 1)
       hoverLineGroup.style('opacity', 1)
+      tip.style("opacity", 1)
     }
 
     let formatDay = d3.timeFormat("%a %x")
 
-    function mousemove() {
+    function mousemove(d) {
       let x0 = x.invert(d3.pointer(event)[0])
       let i = bisect(data, x0, 1)
       selectedData = data[i]
@@ -328,312 +405,23 @@ UCID: 12244891
         .attr("stroke", "black")
         .attr("x1", x(selectedData.month))
         .attr("x2", x(selectedData.month))
+      tip
+        .html("exact: " + d.event)
+        .style("left", (d3.pointer(event)[0]+70) + "px")
+        .style("top", (d3.pointer(event)[1]) + "px")
     }
 
     function mouseout() {
       focus.style('opacity', 0)
       focusText.style('opacity', 0)
       hoverLineGroup.style('opacity', 0)
+      tip.style("opacity", 0)
     }
 
 
 
-
-  //   // position the circle and text
-  //   d3.selectAll(".mouse-per-line")
-  //     .attr("transform", function(d, i) {
-  //       console.log(width/mouse[0])
-  //       var xDate = x.invert(mouse[0]),
-  //           bisect = d3.bisector(function(d) { return d.month; }).right;
-  //           idx = bisect(d.values, xDate);
-
-  //       // from http://bl.ocks.org/duopixel/3824661
-  //       let beginning = 0,
-  //           end = lines[i].getTotalLength(),
-  //           target = null;
-
-  //       while (true){
-  //         target = Math.floor((beginning + end) / 2);
-  //         pos = lines[i].getPointAtLength(target);
-  //         if ((target === end || target === beginning) && pos.x !== mouse[0]) {
-  //             break;
-  //         }
-  //         if (pos.x > mouse[0])      end = target;
-  //         else if (pos.x < mouse[0]) beginning = target;
-  //         else break; //position found
-  //       }
-
-  //       // update the text with y value
-  //       d3.select(this).select('text')
-  //         .text(y.invert(pos.y).toFixed(2));
-
-  //       // return position
-  //       return "translate(" + mouse[0] + "," + pos.y +")";
-  //     });
-  // });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // let mouseG = svg.append("g")
-    //     .attr("class", "mouse-over-effects")
-
-    // mouseG.append("path")
-    //     .attr("class", "mouse-line")
-    //     .style("stroke", "black")
-    //     .style("stroke-width", "1px")
-    //     .style("opacity", "0")
-
-    // let lines = document.getElementsByClassName('line')
-
-    // let mousePerLine = mouseG.selectAll('.mouse-per-line')
-    //     .data(technologies)
-    //     .enter()
-    //     .append("g")
-    //     .attr("class", "mouse-per-line")
-
-    // mousePerLine.append("circle")
-    //     .attr("class", "y")
-    //     .attr("r", 7)
-    //     .style("stroke", d => color(d.name))
-    //     .style("fill", "none")
-    //     .style("stroke-width", "1px")
-    //     .style("opacity", "0")
-
-    // mousePerLine.append("text")
-    //     .attr("transform", "translate(10,3)")
-
-
-    // mouseG.append('svg:rect')
-    //   .attr('width', width)
-    //   .attr('height', height)
-    //   .attr('fill', 'none')
-    //   .attr('pointer-events', 'all')
-    //   .on('mouseout', function() {
-    //     d3.select(".mouse-line")
-    //       .style("opacity", "0")
-    //     d3.selectAll(".mouse-per-line circle")
-    //       .style("opacity", "0")
-    //     d3.selectAll(".mouse-per-line text")
-    //       .style("opacity", "0")
-    //   })
-    //   .on('mouseover', function() {
-    //     d3.select(".mouse_line")
-    //       .style("opacity", "1")
-    //     d3.selectAll(".mouse-per-line circle")
-    //       .style("opacity", "1")
-    //     d3.selectAll(".mouse-per-line text")
-    //       .style("opacity", "1")
-    //   })
-    //   .on("mousemove", mousemove)
-
-    //   function mousemove() {
-    //     let x0 = x.invert(d3.pointer(event, this)[0]),
-    //     i = bisectDate(data, x0, 1),
-    //     d0 = data[i - 1],
-    //     d1 = data[i],
-    //     d = x0 - d0.month > d1.month - x0 ? d1 : d0
-    //   }
-
-    //   mousePerLine.select("circle.y")
-    //     .attr("transform", 
-    //           "translate(" + x(d.month) + "," +
-    //                          y(d.bitcoin) + ")")
-
-
-  // // append the circle at the intersection 
-  // focus.append("circle")
-  //       .attr("class", "y")
-  //       .style("fill", "none")
-  //       .style("stroke", "blue")
-  //       .attr("r", 4);
-    
-  // // append the rectangle to capture mouse
-  // svg.append("rect")
-  //     .attr("width", width)
-  //     .attr("height", height)
-  //     .style("fill", "none")
-  //     .style("pointer-events", "all")
-  //     .on("mouseover", function() { focus.style("display", null); })
-  //     .on("mouseout", function() { focus.style("display", "none"); })
-  //     .on("mousemove", mousemove);
-
-  // function mousemove() {
-	//   var x0 = x.invert(d3.pointer(event,this)[0]),
-	// 	  i = bisectDate(data, x0, 1),
-	// 	  d0 = data[i - 1],
-	// 	  d1 = data[i],
-	// 	  d = x0 - d0.x0 > d1.x0 - x0 ? d1 : d0;
-
-	// focus.select("circle.y")
-	//    .attr("transform",
-	//          "translate(" + x(d.month) + "," +
-	//                         y(d.bitcoin) + ")");
-	// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      // .on('mousemove', function() {
-      //   let mouse = d3.mouse(this);
-      //   d3.select(".mouse-line")
-      //     .attr("d", function() {
-      //       let d = "M" + mouse[0] + "," + height;
-      //       d += " " + mouse[0] + "," + 0;
-      //       return d;
-      //     })
-      // })
-
-        // //d3 scales for the x and y axis
-        // //domain takes the data we have and maps them into SVG space
-        // //in this case we need to use scaleTime because we're dealin time data
-        // // let x = d3.scaleTime()
-        // //     .domain(d3.extent(data.map(function (d) { return d.date }))) //d3 extent
-        // //     .range([margin.left, width - margin.right])
-
-        // //in this case we need to use scaleLinear because we're dealin linear data
-        // let y = d3.scaleLinear()
-        //     .domain(d3.extent(data.map(function (d) { return d.recognition })))
-        //     .range([height - margin.bottom, margin.top])
-
-        // let x = d3.scaleLinear()
-        //     .domain(d3.extent(data.map(function (d) { return d.generation})))
-        //     .range([margin.top, width - margin.bottom])
-
-        // //define the settings for our axes
-        // //https://github.com/d3/d3-axis
-        // let yAxisSettings = d3.axisLeft(y) //set axis to the left
-        //     .ticks(4) //approx how many ticks, the function will not necesarily give you that number
-        //     .tickSize(-width) //size of tick lines
-        //     .tickFormat(d3.format(".0%")) //what format do you want https://github.com/d3/d3-format 
-        //     .tickPadding(10) //distance from tick labels to tick marks
-
-
-        // let xAxisSettings = d3.axisBottom(x)
-        //     .ticks(6)
-        //     .tickSize(10)
-        //     .tickPadding(10)
-        //     .tickFormat(d3.format("d"))
-
-        // let bg = svg.append("rect")
-        //     .attr("x", margin.left)
-        //     .attr("y", 0)
-        //     .attr("width", width)
-        //     .attr("height", height)
-        //     .style("fill", "#FFF9F5")
-
-        // //adding to the axes to our chart
-        // let xAxisTicks = svg.append("g")
-        //     .attr("class", "x axis") //give each axis a class
-        //     .call(xAxisSettings)
-        //     .attr("transform", `translate(0,${height - margin.bottom})`)
-
-
-        // let yAxisTicks = svg.append("g")
-        //     .attr("class", "y axis")
-        //     .call(yAxisSettings)
-        //     .attr("transform", `translate(${margin.left},0)`)
-
-        // let line = d3.line() //define a line function
-        //     .defined(d => !isNaN(d.recognition))
-        //     .x(function (d) { return x(d.generation) }) //accessing date 
-        //     .y(function (d) { return y(d.recognition) }) //accesssing value 
-
-        // // //neat trick https://observablehq.com/@d3/line-with-missing-data
-
-        // // let line_path = svg.append("path") //Add a grouping element. It's useful to organize svg elements. https://developer.mozilla.org/en-US/docs/Web/SVG/Element/g
-        // //     .attr("class", "line") // Give circles a class name.
-        // //     .attr("d", line(data))
-        // //     .style("fill", "none")
-        // //     .style("stroke", "darkblue")
-        // //     .style("stroke-width", 1.8)
-
-        // let grouped_data = d3.group(data, d => d.artist_song);
-
-        // let line_path = svg.append("g")
-        // .selectAll(".line")
-        // .data(grouped_data)
-        // .join("path")
-        // .attr("class", "line")
-        // .attr("d", function(d) {
-        //     return line(d[1])
-        // })
-        // .style("fill", "none")
-        // .style("stroke", d => {
-        //     if(d[0] == "Celine Dion|||My Heart Will Go On") {
-        //         return "#0D7680"
-        //     } 
-            
-        //     if(d[0] == "R.E.M.|||Losing My Religion") {
-        //         return "#832b3b"
-        //     } 
-
-        //     else {
-        //         return "grey"
-        //     }
-        // })
-
-        // .style("stroke-width", d => {
-        //     if(d[0] == "Celine Dion|||My Heart Will Go On") {
-        //         return "2px"
-        //     } 
-
-        //     if(d[0] == "R.E.M.|||Losing My Religion") {
-        //         return "2px"
-        //     } 
-            
-        //     else {
-        //         return "0.1px"
-        //     }
-        // })
-
+      
+   
         // let baseline = svg.append("line")
         // .attr("x1", margin.left)
         // .attr("x2", width + margin.left)
@@ -681,3 +469,4 @@ UCID: 12244891
     })
 
 </script>
+
