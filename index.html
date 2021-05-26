@@ -53,9 +53,10 @@ UCID: 12244891
             Hype Curve
         </h1>
         <br>
-        <svg width="1050px" height="1000px">
-
-        </svg>
+        <br>
+        <br>
+        <svg width="1050px" height="1000px"></svg>
+        <br>
     </div>
 </body>
 
@@ -138,7 +139,7 @@ UCID: 12244891
         .tickFormat(d3.timeFormat("%Y"))
 
     let yAxisSettings = d3.axisLeft(y) 
-        .ticks(4) 
+        .ticks(2) 
         // .tickSize(-width) //size of tick lines
         .tickFormat(d3.format(".0f")) //what format do you want https://github.com/d3/d3-format 
         .tickPadding(5) //distance from tick labels to tick marks
@@ -175,6 +176,74 @@ UCID: 12244891
         .attr("transform", `translate(${margin.left},0)`)
         .style("stroke-width", "0.2px")
 
+
+
+    // ADD TIMEFRAME
+    let timeframes = [
+      {
+        RangeStart: formatTime('2008-04-01'),
+        RangeEnd: formatTime('2017-05-01'),
+        Label: "Innovation",
+        Label2: "Trigger",
+        Color: "#fff1e6"
+      },
+      {
+        RangeStart: formatTime('2017-05-01'),
+        RangeEnd: formatTime('2018-04-01'),
+        Label: "Peak of Inflated",
+        Label2: "Expectations",
+        Color: "#fde2e4"
+      },
+      {
+        RangeStart: formatTime('2018-04-01'),
+        RangeEnd: formatTime('2020-05-01'),
+        Label: "Trough of",
+        Label2: "Disillusionment",
+        Color: "#dbe7e4"
+      },
+      {
+        RangeStart: formatTime('2020-04-01'),
+        RangeEnd: formatTime('2021-05-01'),
+        Label: "Slope of",
+        Label2: "Enlightment",
+        Color: "#bcd4e6"
+      },
+      {
+        RangeStart: formatTime('2021-05-01'),
+        RangeEnd: formatTime('2021-12-01'),
+        Label: "Plateau of",
+        Label2: "Productivity",
+        Color: "#c9ada7"
+      },
+    ];
+
+    let gTimeframes = svg
+        .selectAll("g.timeframe")
+        .data(timeframes).enter()
+        .append("g").attr("class", "timeframe");
+
+    gTimeframes.append("rect")
+        .attr("x", function(d) { return x(d.RangeStart); })
+        .attr("y", 0)
+        .attr("width", function(d) { return x(d.RangeEnd) - x(d.RangeStart); })
+        .attr("height", height)
+        .style("fill", function(d) { return d.Color; });
+
+    gTimeframes.append("text")
+        .attr("x", function(d) { return x(d.RangeStart) + 2; })
+        .attr("y", -15)
+        .text(d => d.Label)
+        .append("tspan")
+        .attr("x", function(d) { return x(d.RangeStart) + 2; })
+        .attr("y", -5)
+        .text(d => d.Label2);
+
+
+
+
+
+
+
     // LINE FUNCTION
 
     let line = d3.line() //define a line function
@@ -194,6 +263,8 @@ UCID: 12244891
 
     let bisect = d3.bisector(d => d.month).left
 
+    // TOOLTIP: Circle
+
     let focus = svg
       .append('g')
       .append('circle')
@@ -202,12 +273,16 @@ UCID: 12244891
         .attr('r', '4')
         .style('opacity', 0)
 
+    // TOOLTIP: Label
+
     let focusText = svg
       .append('g')
       .append('text')
         .style('opacity', 0)
         .attr('text-anchor', 'left')
         .attr('alignment-baseline', 'middle')
+
+    // TOOLTIP: Vertical Line
 
     let hoverLineGroup = svg
       .append("g")
@@ -217,7 +292,7 @@ UCID: 12244891
       .append("line")
         .attr("stroke", "none")
         .attr("x1", 0).attr("x2", 0)
-        .attr("y1", 0).attr("y2", height)
+        .attr("y1", 0).attr("y2", 2*height)
 
     svg
       .append('rect')
